@@ -2,7 +2,7 @@
   "name": "perler-beads-creator",
   "version": "0.2.0",
   "private": true,
-  "homepage": "http://chbauman.github.io/perler-beads-template",
+  "homepage": "http://perler.chrisbaumann.ch",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
