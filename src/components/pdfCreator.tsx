@@ -26,37 +26,80 @@ export const generatePdf = (
     : defaultCellSizeMM;
   console.log(boardSize);
   console.assert(a4H > 0);
+  const fullSize = boardSize * selectedCellSizeMM;
+  const borderSpace = (a4W - fullSize) / 2;
+  if (borderSpace < 0) {
+    console.debug("Board does not fit on A4 page!");
+  }
 
+  // Create PDF
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
     format: a4SizeMM,
   });
-  doc.text("Perler Beads Template", a4W / 2, 10, { align: "center" });
 
-  const fullSize = boardSize * selectedCellSizeMM;
-  const borderSpace = (a4W - fullSize) / 2;
-  doc.rect(borderSpace, topSpaceMM, fullSize, fullSize);
+  // Compute number of pages
+  const pagesNumberW = Math.ceil(w / boardSize);
+  const pagesNumberH = Math.ceil(h / boardSize);
+  if (pagesNumberW > 1 || pagesNumberH > 1) {
+    console.log("Not yet implemented", `${pagesNumberH} x ${pagesNumberW}`);
+  }
 
-  for (let i = 0; i < h; ++i) {
-    const offsetH = borderSpace + i * selectedCellSizeMM;
+  for (let pageIdxH = 0; pageIdxH < pagesNumberH; ++pageIdxH) {
+    const hIndexOffset = pageIdxH * boardSize;
+    const hMax = Math.min(boardSize, h - hIndexOffset);
 
-    for (let k = 0; k < w; ++k) {
-      const offsetw = topSpaceMM + k * selectedCellSizeMM;
-      const redChan = mavinImage.getIntComponent0(i, k);
-      const greenChan = mavinImage.getIntComponent1(i, k);
-      const blueChan = mavinImage.getIntComponent2(i, k);
-      const alpha = mavinImage.getAlphaComponent(i, k);
-      if (alpha > 0) {
-        doc.setFillColor(redChan, greenChan, blueChan);
-      } else {
-        doc.setFillColor(255, 255, 255);
+    for (let pageIdxW = 0; pageIdxW < pagesNumberW; ++pageIdxW) {
+      const wIndexOffset = pageIdxW * boardSize;
+      const wMax = Math.min(boardSize, w - wIndexOffset);
+
+      // Add page, header and full rect
+      if (pageIdxW !== 0 || pageIdxH !== 0) {
+        doc.addPage();
       }
-      doc.rect(offsetH, offsetw, selectedCellSizeMM, selectedCellSizeMM, "FD");
+      doc.text("Perler Beads Template", a4W / 2, 10, { align: "center" });
+      doc.rect(borderSpace, topSpaceMM, fullSize, fullSize);
+
+      for (let i = 0; i < hMax; ++i) {
+        const offsetH = borderSpace + i * selectedCellSizeMM;
+
+        for (let k = 0; k < wMax; ++k) {
+          const offsetw = topSpaceMM + k * selectedCellSizeMM;
+          const redChan = mavinImage.getIntComponent0(
+            i + hIndexOffset,
+            k + wIndexOffset
+          );
+          const greenChan = mavinImage.getIntComponent1(
+            i + hIndexOffset,
+            k + wIndexOffset
+          );
+          const blueChan = mavinImage.getIntComponent2(
+            i + hIndexOffset,
+            k + wIndexOffset
+          );
+          const alpha = mavinImage.getAlphaComponent(
+            i + hIndexOffset,
+            k + wIndexOffset
+          );
+          if (alpha > 0) {
+            doc.setFillColor(redChan, greenChan, blueChan);
+          } else {
+            doc.setFillColor(255, 255, 255);
+          }
+          doc.rect(
+            offsetH,
+            offsetw,
+            selectedCellSizeMM,
+            selectedCellSizeMM,
+            "FD"
+          );
+        }
+      }
     }
   }
 
-  doc.save("a4.pdf");
+  doc.save("perler-template-chba.pdf");
 };
 
 /** PDF file creator component. */
@@ -88,7 +131,7 @@ export const PDFCreator = () => {
           name="boardSize"
           ref={boardSizeInputRef}
         />{" "}
-        cells.
+        cells (square).
       </div>
       <button
         onClick={() =>
