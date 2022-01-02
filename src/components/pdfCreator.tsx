@@ -1,12 +1,17 @@
 import jsPDF from "jspdf";
+import { useRef } from "react";
 import { mavinImage } from "./fileReader";
 
 const a4SizeMM = [297, 210];
 const [a4H, a4W] = a4SizeMM;
-const cellSizeMM = 5;
+const defaultCellSizeMM = 5;
 const topSpaceMM = 20;
 
-export const generatePdf = () => {
+/** Generate Pdf from mavinImage. */
+export const generatePdf = (
+  inputEl: HTMLInputElement | null,
+  cellSizeInputEl: HTMLInputElement | null
+) => {
   const w = mavinImage.width;
   const h = mavinImage.height;
   if (w === 0 || h === 0) {
@@ -14,9 +19,14 @@ export const generatePdf = () => {
     return;
   }
 
+  // Board size
+  const boardSize = inputEl ? inputEl.value : -1;
+  const selectedCellSizeMM = cellSizeInputEl
+    ? parseFloat(cellSizeInputEl.value)
+    : defaultCellSizeMM;
+  console.log(boardSize);
   console.assert(a4H > 0);
-
-  const borderSpace = (a4W - w * cellSizeMM) / 2;
+  const borderSpace = (a4W - w * selectedCellSizeMM) / 2;
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -26,10 +36,10 @@ export const generatePdf = () => {
   doc.text("Perler Beads Template", a4W / 2, 10, { align: "center" });
 
   for (let i = 0; i < h; ++i) {
-    const offsetH = borderSpace + i * cellSizeMM;
+    const offsetH = borderSpace + i * selectedCellSizeMM;
 
     for (let k = 0; k < w; ++k) {
-      const offsetw = topSpaceMM + k * cellSizeMM;
+      const offsetw = topSpaceMM + k * selectedCellSizeMM;
       const redChan = mavinImage.getIntComponent0(i, k);
       const greenChan = mavinImage.getIntComponent1(i, k);
       const blueChan = mavinImage.getIntComponent2(i, k);
@@ -39,13 +49,51 @@ export const generatePdf = () => {
       } else {
         doc.setFillColor(255, 255, 255);
       }
-      doc.rect(offsetH, offsetw, cellSizeMM, cellSizeMM, "FD");
+      doc.rect(offsetH, offsetw, selectedCellSizeMM, selectedCellSizeMM, "FD");
     }
   }
 
   doc.save("a4.pdf");
 };
 
-export const CreateSample = () => {
-  return <button onClick={() => generatePdf()}>Create PDF</button>;
+/** PDF file creator component. */
+export const PDFCreator = () => {
+  const boardSizeInputRef = useRef(null);
+  const cellSizeInputRef = useRef(null);
+
+  return (
+    <>
+      <div className="cellSize">
+        <label htmlFor="cellSize">Cell Size: </label>
+        <input
+          type="number"
+          min={0}
+          defaultValue={5}
+          step={0.1}
+          name="cellSize"
+          ref={cellSizeInputRef}
+        />{" "}
+        mm.
+      </div>
+      <div className="boardSize">
+        <label htmlFor="boardSize">Board Size: </label>
+        <input
+          type="number"
+          min={0}
+          step={1}
+          defaultValue={30}
+          name="boardSize"
+          ref={boardSizeInputRef}
+        />{" "}
+        cells.
+      </div>
+      <button
+        onClick={() =>
+          generatePdf(boardSizeInputRef.current, cellSizeInputRef.current)
+        }
+      >
+        Create PDF
+      </button>
+    </>
+  );
 };
