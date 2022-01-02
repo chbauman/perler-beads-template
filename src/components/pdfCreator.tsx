@@ -20,13 +20,12 @@ export const generatePdf = (
   }
 
   // Board size
-  const boardSize = inputEl ? inputEl.value : -1;
+  const boardSize = inputEl ? Math.round(parseFloat(inputEl.value)) : -1;
   const selectedCellSizeMM = cellSizeInputEl
     ? parseFloat(cellSizeInputEl.value)
     : defaultCellSizeMM;
   console.log(boardSize);
   console.assert(a4H > 0);
-  const borderSpace = (a4W - w * selectedCellSizeMM) / 2;
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -34,6 +33,10 @@ export const generatePdf = (
     format: a4SizeMM,
   });
   doc.text("Perler Beads Template", a4W / 2, 10, { align: "center" });
+
+  const fullSize = boardSize * selectedCellSizeMM;
+  const borderSpace = (a4W - fullSize) / 2;
+  doc.rect(borderSpace, topSpaceMM, fullSize, fullSize);
 
   for (let i = 0; i < h; ++i) {
     const offsetH = borderSpace + i * selectedCellSizeMM;

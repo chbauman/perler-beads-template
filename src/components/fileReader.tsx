@@ -1,6 +1,7 @@
-import { MarvinImage } from "marvinj-ts";
+import { Marvin, MarvinImage } from "marvinj-ts";
 
 const canvasId = "canvas-img";
+const canvasH = 200;
 
 export const mavinImage = new MarvinImage();
 
@@ -15,11 +16,17 @@ export const FileImporter = () => {
       return;
     }
     console.log(e);
-    const output = getCanvas();
+    const previewCanvas = getCanvas();
     const dataURL = fileReader!.result as string;
 
     const imageLoaded = () => {
-      mavinImage.draw(output, 0, 0, 0);
+      const newWidth = Math.round(
+        (mavinImage.width / mavinImage.height) * canvasH
+      );
+      const rescaledImage = new MarvinImage();
+      Marvin.scale(mavinImage, rescaledImage, newWidth, canvasH);
+      previewCanvas.setAttribute("width", `${newWidth}`);
+      rescaledImage.draw(previewCanvas, 0, 0, 0);
     };
 
     mavinImage.load(dataURL, imageLoaded);
@@ -48,7 +55,7 @@ export const FileImporter = () => {
         ></input>
       </div>
       <div>
-        <canvas id={canvasId} width="200" height="200"></canvas>
+        <canvas id={canvasId} width={canvasH} height={canvasH}></canvas>
       </div>
     </>
   );
