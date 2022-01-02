@@ -1,4 +1,4 @@
-# Perler Template Creator
+# Perler Bead Template Creator
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
