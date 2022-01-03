@@ -62,25 +62,25 @@ export const generatePdf = (
       doc.rect(borderSpace, topSpaceMM, fullSize, fullSize);
 
       for (let i = 0; i < hMax; ++i) {
-        const offsetH = borderSpace + i * selectedCellSizeMM;
+        const offsetH = topSpaceMM + i * selectedCellSizeMM;
 
         for (let k = 0; k < wMax; ++k) {
-          const offsetw = topSpaceMM + k * selectedCellSizeMM;
+          const offsetw = borderSpace + k * selectedCellSizeMM;
           const redChan = mavinImage.getIntComponent0(
-            i + hIndexOffset,
-            k + wIndexOffset
+            k + wIndexOffset,
+            i + hIndexOffset
           );
           const greenChan = mavinImage.getIntComponent1(
-            i + hIndexOffset,
-            k + wIndexOffset
+            k + wIndexOffset,
+            i + hIndexOffset
           );
           const blueChan = mavinImage.getIntComponent2(
-            i + hIndexOffset,
-            k + wIndexOffset
+            k + wIndexOffset,
+            i + hIndexOffset
           );
           const alpha = mavinImage.getAlphaComponent(
-            i + hIndexOffset,
-            k + wIndexOffset
+            k + wIndexOffset,
+            i + hIndexOffset
           );
           if (alpha > 0) {
             doc.setFillColor(redChan, greenChan, blueChan);
@@ -88,8 +88,8 @@ export const generatePdf = (
             doc.setFillColor(255, 255, 255);
           }
           doc.rect(
-            offsetH,
             offsetw,
+            offsetH,
             selectedCellSizeMM,
             selectedCellSizeMM,
             "FD"
