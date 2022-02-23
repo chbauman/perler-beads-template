@@ -1,8 +1,9 @@
 # Perler Bead Template Creator
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+It can be viewed at [https://perler.chrisbaumann.ch/](https://perler.chrisbaumann.ch/).
 
-## Available Scripts
+## Development
 
 In the project directory, you can run:
 
@@ -30,4 +31,5 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 ### `npm run deploy`
 
-Builds the react app and publishes it through Github pages.
+Publishes the app through Github pages.
+Note that `npm build` needs to be run first.
