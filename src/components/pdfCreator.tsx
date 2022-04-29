@@ -17,6 +17,7 @@ export const generatePdf = (boardSize: number, cellSize: number) => {
 
   // Board size
   const selectedCellSizeMM = cellSize;
+  const halfCellSize = selectedCellSizeMM / 2;
   console.log(boardSize);
   console.assert(a4H > 0);
   const fullSize = boardSize * selectedCellSizeMM;
@@ -77,16 +78,22 @@ export const generatePdf = (boardSize: number, cellSize: number) => {
           );
           if (alpha > 0) {
             doc.setFillColor(redChan, greenChan, blueChan);
+            doc.circle(
+              offsetw + halfCellSize,
+              offsetH + halfCellSize,
+              halfCellSize * 0.9,
+              "FD"
+            );
           } else {
-            doc.setFillColor(255, 255, 255);
+            doc.setFillColor(0, 0, 0);
+            doc.circle(
+              offsetw + halfCellSize,
+              offsetH + halfCellSize,
+              halfCellSize * 0.2,
+              "FD"
+            );
           }
-          doc.rect(
-            offsetw,
-            offsetH,
-            selectedCellSizeMM,
-            selectedCellSizeMM,
-            "FD"
-          );
+          doc.rect(offsetw, offsetH, selectedCellSizeMM, selectedCellSizeMM);
         }
       }
     }
