@@ -1,17 +1,13 @@
 import jsPDF from "jspdf";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { mavinImage } from "./fileReader";
 
 const a4SizeMM = [297, 210];
 const [a4H, a4W] = a4SizeMM;
-const defaultCellSizeMM = 5;
 const topSpaceMM = 20;
 
 /** Generate Pdf from mavinImage. */
-export const generatePdf = (
-  inputEl: HTMLInputElement | null,
-  cellSizeInputEl: HTMLInputElement | null
-) => {
+export const generatePdf = (boardSize: number, cellSize: number) => {
   const w = mavinImage.width;
   const h = mavinImage.height;
   if (w === 0 || h === 0) {
@@ -20,10 +16,7 @@ export const generatePdf = (
   }
 
   // Board size
-  const boardSize = inputEl ? Math.round(parseFloat(inputEl.value)) : -1;
-  const selectedCellSizeMM = cellSizeInputEl
-    ? parseFloat(cellSizeInputEl.value)
-    : defaultCellSizeMM;
+  const selectedCellSizeMM = cellSize;
   console.log(boardSize);
   console.assert(a4H > 0);
   const fullSize = boardSize * selectedCellSizeMM;
@@ -104,8 +97,8 @@ export const generatePdf = (
 
 /** PDF file creator component. */
 export const PDFCreator = () => {
-  const boardSizeInputRef = useRef(null);
-  const cellSizeInputRef = useRef(null);
+  const [boardSize, setBoardSize] = useState(30);
+  const [cellSize, setCellSize] = useState(5);
 
   return (
     <>
@@ -114,10 +107,10 @@ export const PDFCreator = () => {
         <input
           type="number"
           min={0}
-          defaultValue={5}
           step={0.1}
+          value={cellSize}
           name="cellSize"
-          ref={cellSizeInputRef}
+          onChange={(e) => setCellSize(parseFloat(e.target.value))}
         />{" "}
         mm.
       </div>
@@ -127,17 +120,13 @@ export const PDFCreator = () => {
           type="number"
           min={0}
           step={1}
-          defaultValue={30}
+          value={boardSize}
           name="boardSize"
-          ref={boardSizeInputRef}
+          onChange={(e) => setBoardSize(parseInt(e.target.value))}
         />{" "}
         cells (square).
       </div>
-      <button
-        onClick={() =>
-          generatePdf(boardSizeInputRef.current, cellSizeInputRef.current)
-        }
-      >
+      <button onClick={() => generatePdf(boardSize, cellSize)}>
         Create PDF
       </button>
     </>
