@@ -1,4 +1,5 @@
 import { Marvin, MarvinImage } from "marvinj-ts";
+import { useState } from "react";
 
 const canvasId = "canvas-img";
 const canvasH = 200;
@@ -8,7 +9,7 @@ export const mavinImage = new MarvinImage();
 export const getCanvas = () =>
   document.getElementById(canvasId) as HTMLCanvasElement;
 
-export const FileImporter = () => {
+export const FileImporter = (props: { setImgW: any; setImgH: any }) => {
   let fileReader: FileReader | null = null;
 
   const handleRead = (e: any) => {
@@ -20,6 +21,8 @@ export const FileImporter = () => {
     const dataURL = fileReader!.result as string;
 
     const imageLoaded = () => {
+      props.setImgW(mavinImage.width);
+      props.setImgH(mavinImage.height);
       const newWidth = Math.round(
         (mavinImage.width / mavinImage.height) * canvasH
       );

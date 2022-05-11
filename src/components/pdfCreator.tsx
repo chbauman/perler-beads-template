@@ -1,30 +1,65 @@
 import jsPDF from "jspdf";
-import { useRef, useState } from "react";
+import { Marvin, MarvinImage } from "marvinj-ts";
+import { useState } from "react";
 import { mavinImage } from "./fileReader";
 
 const a4SizeMM = [297, 210];
 const [a4H, a4W] = a4SizeMM;
 const topSpaceMM = 20;
 
-/** Generate Pdf from mavinImage. */
-export const generatePdf = (boardSize: number, cellSize: number) => {
-  const w = mavinImage.width;
-  const h = mavinImage.height;
+type OptionalWarning = null | string;
+type ImgSize = { h: number; w: number };
+type ImgInfo = {
+  h: number;
+  w: number;
+  fullSize: number;
+  borderSpace: number;
+  totNPages: number;
+};
+
+const getInfo = (
+  boardSize: number,
+  selectedCellSizeMM: number,
+  imgSize: ImgSize
+) => {
+  const { h, w } = imgSize;
+  const info: ImgInfo = { h, w, fullSize: 0, borderSpace: 0, totNPages: 0 };
+  let warning: OptionalWarning = null;
   if (w === 0 || h === 0) {
-    console.debug("Invalid image!");
-    return;
+    warning = "Invalid image!";
+    return { warning, info };
   }
 
-  // Board size
-  const selectedCellSizeMM = cellSize;
-  const halfCellSize = selectedCellSizeMM / 2;
-  console.log(boardSize);
   console.assert(a4H > 0);
   const fullSize = boardSize * selectedCellSizeMM;
   const borderSpace = (a4W - fullSize) / 2;
   if (borderSpace < 0) {
-    console.debug("Board does not fit on A4 page!");
+    warning = "Board does not fit on A4 page!";
   }
+  const pagesNumberW = Math.ceil(w / boardSize);
+  const pagesNumberH = Math.ceil(h / boardSize);
+  const totNPages = pagesNumberW * pagesNumberH;
+
+  info.fullSize = fullSize;
+  info.borderSpace = borderSpace;
+  info.totNPages = totNPages;
+
+  return { warning, info };
+};
+
+/** Generate Pdf from mavinImage. */
+export const generatePdf = (
+  boardSize: number,
+  selectedCellSizeMM: number,
+  info: ImgInfo,
+  warning: OptionalWarning
+) => {
+  if (warning !== null) {
+    console.log(warning);
+    return;
+  }
+
+  const { w, h, fullSize, borderSpace } = info;
 
   // Create PDF
   const doc = new jsPDF({
@@ -32,14 +67,19 @@ export const generatePdf = (boardSize: number, cellSize: number) => {
     unit: "mm",
     format: a4SizeMM,
   });
+  let rescaledImage: MarvinImage;
+  if (mavinImage.height !== h || mavinImage.width !== w) {
+    rescaledImage = new MarvinImage();
+    Marvin.scale(mavinImage, rescaledImage, w, h);
+  } else {
+    rescaledImage = mavinImage;
+  }
 
   // Compute number of pages
   const pagesNumberW = Math.ceil(w / boardSize);
   const pagesNumberH = Math.ceil(h / boardSize);
-  if (pagesNumberW > 1 || pagesNumberH > 1) {
-    console.log("Not yet implemented", `${pagesNumberH} x ${pagesNumberW}`);
-  }
 
+  const halfCellSize = selectedCellSizeMM / 2;
   for (let pageIdxH = 0; pageIdxH < pagesNumberH; ++pageIdxH) {
     const hIndexOffset = pageIdxH * boardSize;
     const hMax = Math.min(boardSize, h - hIndexOffset);
@@ -60,19 +100,19 @@ export const generatePdf = (boardSize: number, cellSize: number) => {
 
         for (let k = 0; k < wMax; ++k) {
           const offsetw = borderSpace + k * selectedCellSizeMM;
-          const redChan = mavinImage.getIntComponent0(
+          const redChan = rescaledImage.getIntComponent0(
             k + wIndexOffset,
             i + hIndexOffset
           );
-          const greenChan = mavinImage.getIntComponent1(
+          const greenChan = rescaledImage.getIntComponent1(
             k + wIndexOffset,
             i + hIndexOffset
           );
-          const blueChan = mavinImage.getIntComponent2(
+          const blueChan = rescaledImage.getIntComponent2(
             k + wIndexOffset,
             i + hIndexOffset
           );
-          const alpha = mavinImage.getAlphaComponent(
+          const alpha = rescaledImage.getAlphaComponent(
             k + wIndexOffset,
             i + hIndexOffset
           );
@@ -103,9 +143,12 @@ export const generatePdf = (boardSize: number, cellSize: number) => {
 };
 
 /** PDF file creator component. */
-export const PDFCreator = () => {
+export const PDFCreator = (props: ImgSize) => {
   const [boardSize, setBoardSize] = useState(30);
   const [cellSize, setCellSize] = useState(5);
+
+  const { warning, info } = getInfo(boardSize, cellSize, props);
+  const warnComp = warning && <div>WARNING: {warning}</div>;
 
   return (
     <>
@@ -133,9 +176,11 @@ export const PDFCreator = () => {
         />{" "}
         cells (square).
       </div>
-      <button onClick={() => generatePdf(boardSize, cellSize)}>
+      <div>Total: {info.totNPages} pages</div>
+      <button onClick={() => generatePdf(boardSize, cellSize, info, warning)}>
         Create PDF
       </button>
+      {warnComp}
     </>
   );
 };
