@@ -1,5 +1,4 @@
 import { Marvin, MarvinImage } from "marvinj-ts";
-import { useState } from "react";
 
 const canvasId = "canvas-img";
 const canvasH = 200;
@@ -16,7 +15,6 @@ export const FileImporter = (props: { setImgW: any; setImgH: any }) => {
     if (fileReader === null) {
       return;
     }
-    console.log(e);
     const previewCanvas = getCanvas();
     const dataURL = fileReader!.result as string;
 
@@ -37,7 +35,6 @@ export const FileImporter = (props: { setImgW: any; setImgH: any }) => {
 
   const handleChosenFile = (file: any) => {
     if (file) {
-      console.log("Chosen: ", file);
       fileReader = new FileReader();
       fileReader.onloadend = handleRead;
       fileReader.readAsDataURL(file);

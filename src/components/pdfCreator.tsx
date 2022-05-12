@@ -1,5 +1,4 @@
 import jsPDF from "jspdf";
-import { Marvin, MarvinImage } from "marvinj-ts";
 import { useState } from "react";
 import { mavinImage } from "./fileReader";
 
@@ -8,7 +7,7 @@ const [a4H, a4W] = a4SizeMM;
 const topSpaceMM = 20;
 
 type OptionalWarning = null | string;
-type ImgSize = { h: number; w: number };
+type ImgSize = { h: number | null; w: number | null };
 type ImgInfo = {
   h: number;
   w: number;
@@ -23,6 +22,9 @@ const getInfo = (
   imgSize: ImgSize
 ) => {
   const { h, w } = imgSize;
+  if (h === null || w === null) {
+    return { warning: null, info: null };
+  }
   const info: ImgInfo = { h, w, fullSize: 0, borderSpace: 0, totNPages: 0 };
   let warning: OptionalWarning = null;
   if (w === 0 || h === 0) {
@@ -67,13 +69,6 @@ export const generatePdf = (
     unit: "mm",
     format: a4SizeMM,
   });
-  let rescaledImage: MarvinImage;
-  if (mavinImage.height !== h || mavinImage.width !== w) {
-    rescaledImage = new MarvinImage();
-    Marvin.scale(mavinImage, rescaledImage, w, h);
-  } else {
-    rescaledImage = mavinImage;
-  }
 
   // Compute number of pages
   const pagesNumberW = Math.ceil(w / boardSize);
@@ -100,13 +95,13 @@ export const generatePdf = (
 
       for (let i = 0; i < hMax; ++i) {
         const offsetH = topSpaceMM + i * selectedCellSizeMM;
+        const hResampled = i + hIndexOffset;
+        const hOrig = Math.round(resFacH * (hResampled + 0.5) - 0.5);
 
         for (let k = 0; k < wMax; ++k) {
           const offsetw = borderSpace + k * selectedCellSizeMM;
           const wRes = k + wIndexOffset;
-          const hResampled = i + hIndexOffset;
           const wOrig = Math.round(resFacW * (wRes + 0.5) - 0.5);
-          const hOrig = Math.round(resFacH * (hResampled + 0.5) - 0.5);
 
           const redChan = mavinImage.getIntComponent0(wOrig, hOrig);
           const greenChan = mavinImage.getIntComponent1(wOrig, hOrig);
@@ -146,6 +141,19 @@ export const PDFCreator = (props: ImgSize) => {
   const { warning, info } = getInfo(boardSize, cellSize, props);
   const warnComp = warning && <div>WARNING: {warning}</div>;
 
+  let generateComp = null;
+  if (info !== null) {
+    generateComp = (
+      <>
+        {" "}
+        <div>Total: {info.totNPages} pages</div>
+        <button onClick={() => generatePdf(boardSize, cellSize, info, warning)}>
+          Create PDF
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="cellSize">
@@ -172,10 +180,7 @@ export const PDFCreator = (props: ImgSize) => {
         />{" "}
         cells (square).
       </div>
-      <div>Total: {info.totNPages} pages</div>
-      <button onClick={() => generatePdf(boardSize, cellSize, info, warning)}>
-        Create PDF
-      </button>
+      {generateComp}
       {warnComp}
     </>
   );

@@ -4,8 +4,13 @@ import { FileImporter } from "./components/fileReader";
 import { PDFCreator } from "./components/pdfCreator";
 
 function App() {
-  const [imgH, setImgH] = useState(0);
-  const [imgW, setImgW] = useState(0);
+  const [imgH, setImgH] = useState<string | null>(null);
+  const [imgW, setImgW] = useState<string | null>(null);
+
+  const imgHNum = imgH ? parseInt(imgH) : 0;
+  const imgWNum = imgW ? parseInt(imgW) : 0;
+
+  const imgDefined = imgH !== null && imgW !== null;
 
   return (
     <div className="perler-app">
@@ -24,23 +29,29 @@ function App() {
             type="number"
             min={0}
             step={1}
-            value={imgH}
+            value={imgH === null ? undefined : imgH}
             name="h"
-            onChange={(e) => setImgH(parseInt(e.target.value))}
+            onChange={(e) => {
+              setImgH(e.target.value);
+            }}
+            disabled={!imgDefined}
           />
           {" x "}
           <input
             type="number"
             min={0}
             step={1}
-            value={imgW}
+            value={imgW === null ? undefined : imgW}
             name="w"
-            onChange={(e) => setImgW(parseInt(e.target.value))}
+            onChange={(e) => {
+              setImgW(e.target.value);
+            }}
+            disabled={!imgDefined}
           />
           {" pixels / beads."}
         </div>
       </div>
-      <PDFCreator h={imgH} w={imgW}></PDFCreator>
+      <PDFCreator h={imgHNum} w={imgWNum}></PDFCreator>
     </div>
   );
 }
