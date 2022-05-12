@@ -79,6 +79,9 @@ export const generatePdf = (
   const pagesNumberW = Math.ceil(w / boardSize);
   const pagesNumberH = Math.ceil(h / boardSize);
 
+  const resFacW = mavinImage.width / w;
+  const resFacH = mavinImage.height / h;
+
   const halfCellSize = selectedCellSizeMM / 2;
   for (let pageIdxH = 0; pageIdxH < pagesNumberH; ++pageIdxH) {
     const hIndexOffset = pageIdxH * boardSize;
@@ -100,22 +103,15 @@ export const generatePdf = (
 
         for (let k = 0; k < wMax; ++k) {
           const offsetw = borderSpace + k * selectedCellSizeMM;
-          const redChan = rescaledImage.getIntComponent0(
-            k + wIndexOffset,
-            i + hIndexOffset
-          );
-          const greenChan = rescaledImage.getIntComponent1(
-            k + wIndexOffset,
-            i + hIndexOffset
-          );
-          const blueChan = rescaledImage.getIntComponent2(
-            k + wIndexOffset,
-            i + hIndexOffset
-          );
-          const alpha = rescaledImage.getAlphaComponent(
-            k + wIndexOffset,
-            i + hIndexOffset
-          );
+          const wRes = k + wIndexOffset;
+          const hResampled = i + hIndexOffset;
+          const wOrig = Math.round(resFacW * (wRes + 0.5) - 0.5);
+          const hOrig = Math.round(resFacH * (hResampled + 0.5) - 0.5);
+
+          const redChan = mavinImage.getIntComponent0(wOrig, hOrig);
+          const greenChan = mavinImage.getIntComponent1(wOrig, hOrig);
+          const blueChan = mavinImage.getIntComponent2(wOrig, hOrig);
+          const alpha = mavinImage.getAlphaComponent(wOrig, hOrig);
           if (alpha > 0) {
             doc.setFillColor(redChan, greenChan, blueChan);
             doc.circle(
