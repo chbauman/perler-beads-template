@@ -29,7 +29,7 @@ function App() {
             type="number"
             min={0}
             step={1}
-            value={imgH === null ? undefined : imgH}
+            value={imgH ?? ""}
             name="h"
             onChange={(e) => {
               setImgH(e.target.value);
@@ -41,7 +41,7 @@ function App() {
             type="number"
             min={0}
             step={1}
-            value={imgW === null ? undefined : imgW}
+            value={imgW ?? ""}
             name="w"
             onChange={(e) => {
               setImgW(e.target.value);
