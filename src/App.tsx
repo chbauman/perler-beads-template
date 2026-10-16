@@ -34,12 +34,27 @@ function App() {
   const [imgH, setImgH] = useState("");
   const [imgW, setImgW] = useState("");
   const [imageVersion, setImageVersion] = useState(0);
+  const [origSize, setOrigSize] = useState({ w: 0, h: 0 });
+  const [keepRatio, setKeepRatio] = useState(true);
   const [boardSize, setBoardSize] = useState("30");
   const [cellSize, setCellSize] = useState("5");
 
   const imgHNum = parseInt(imgH) || 0;
   const imgWNum = parseInt(imgW) || 0;
   const imgDefined = imageVersion > 0;
+
+  // Setting one dimension derives the other from the original aspect ratio.
+  const setDimension = (dim: "w" | "h", value: string) => {
+    const [setThis, setOther] =
+      dim === "w" ? [setImgW, setImgH] : [setImgH, setImgW];
+    setThis(value);
+    const num = parseInt(value);
+    if (keepRatio && num > 0) {
+      const ratio =
+        dim === "w" ? origSize.h / origSize.w : origSize.w / origSize.h;
+      setOther(`${Math.max(1, Math.round(num * ratio))}`);
+    }
+  };
 
   return (
     <div className="perler-app">
@@ -56,12 +71,19 @@ function App() {
           <section className="card">
             <h2>Image</h2>
             <FileImporter
+              loaded={imgDefined}
               onLoad={(w, h) => {
                 setImgW(`${w}`);
                 setImgH(`${h}`);
+                setOrigSize({ w, h });
                 setImageVersion((v) => v + 1);
               }}
             />
+            {imgDefined && (
+              <div className="orig-size">
+                Original: {origSize.w} × {origSize.h} px
+              </div>
+            )}
             <div className="field-row">
               <NumberField
                 id="imgW"
@@ -70,7 +92,7 @@ function App() {
                 value={imgW}
                 step={1}
                 disabled={!imgDefined}
-                onChange={setImgW}
+                onChange={(v) => setDimension("w", v)}
               />
               <NumberField
                 id="imgH"
@@ -79,9 +101,18 @@ function App() {
                 value={imgH}
                 step={1}
                 disabled={!imgDefined}
-                onChange={setImgH}
+                onChange={(v) => setDimension("h", v)}
               />
             </div>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={keepRatio}
+                disabled={!imgDefined}
+                onChange={(e) => setKeepRatio(e.target.checked)}
+              />
+              Lock aspect ratio
+            </label>
           </section>
           <section className="card">
             <h2>Board</h2>

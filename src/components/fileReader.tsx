@@ -1,7 +1,7 @@
 import { Marvin, MarvinImage } from "marvinj-ts";
 
 const canvasId = "canvas-img";
-const canvasH = 120;
+const canvasH = 240;
 
 export const marvinImage = new MarvinImage();
 
@@ -9,6 +9,7 @@ export const getCanvas = () =>
   document.getElementById(canvasId) as HTMLCanvasElement;
 
 export const FileImporter = (props: {
+  loaded: boolean;
   onLoad: (w: number, h: number) => void;
 }) => {
   let fileReader: FileReader | null = null;
@@ -56,7 +57,12 @@ export const FileImporter = (props: {
         accept=".jpg,.jpeg,.png"
         onChange={(e) => handleChosenFile(e.target.files?.[0])}
       />
-      <canvas id={canvasId} width={canvasH} height={canvasH}></canvas>
+      <canvas
+        id={canvasId}
+        width={canvasH}
+        height={canvasH}
+        hidden={!props.loaded}
+      ></canvas>
     </div>
   );
 };
