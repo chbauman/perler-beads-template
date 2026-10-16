@@ -1,6 +1,8 @@
 # Perler Bead Template Creator
 
 Upload an image and get a printable PDF template with one bead per pixel.
+![Screenshot of the app](docs/screenshot.png)
+
 It can be viewed at [https://perler.chrisbaumann.ch/](https://perler.chrisbaumann.ch/).
 
 ## Development
