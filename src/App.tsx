@@ -1,57 +1,157 @@
 import { useState } from "react";
 import "./App.css";
+import { BeadPreview } from "./components/beadPreview";
 import { FileImporter } from "./components/fileReader";
 import { PDFCreator } from "./components/pdfCreator";
 
+const NumberField = (props: {
+  id: string;
+  label: string;
+  unit: string;
+  value: string;
+  step: number;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) => (
+  <div className="field">
+    <label htmlFor={props.id}>{props.label}</label>
+    <div className="field-input">
+      <input
+        type="number"
+        id={props.id}
+        min={0}
+        step={props.step}
+        value={props.value}
+        disabled={props.disabled}
+        onChange={(e) => props.onChange(e.target.value)}
+      />
+      <span className="unit">{props.unit}</span>
+    </div>
+  </div>
+);
+
 function App() {
-  const [imgH, setImgH] = useState<string | null>(null);
-  const [imgW, setImgW] = useState<string | null>(null);
+  const [imgH, setImgH] = useState("");
+  const [imgW, setImgW] = useState("");
+  const [imageVersion, setImageVersion] = useState(0);
+  const [origSize, setOrigSize] = useState({ w: 0, h: 0 });
+  const [keepRatio, setKeepRatio] = useState(true);
+  const [boardSize, setBoardSize] = useState("30");
+  const [cellSize, setCellSize] = useState("5");
 
-  const imgHNum = imgH ? parseInt(imgH) : 0;
-  const imgWNum = imgW ? parseInt(imgW) : 0;
+  const imgHNum = parseInt(imgH) || 0;
+  const imgWNum = parseInt(imgW) || 0;
+  const imgDefined = imageVersion > 0;
 
-  const imgDefined = imgH !== null && imgW !== null;
+  // Setting one dimension derives the other from the original aspect ratio.
+  const setDimension = (dim: "w" | "h", value: string) => {
+    const [setThis, setOther] =
+      dim === "w" ? [setImgW, setImgH] : [setImgH, setImgW];
+    setThis(value);
+    const num = parseInt(value);
+    if (keepRatio && num > 0) {
+      const ratio =
+        dim === "w" ? origSize.h / origSize.w : origSize.w / origSize.h;
+      setOther(`${Math.max(1, Math.round(num * ratio))}`);
+    }
+  };
 
   return (
     <div className="perler-app">
-      <h1>Perler Bead Template Generator</h1>
-      <p>
-        Upload an image and generate a PDF containing a perler bead template.
-        Each pixel of the passed image will correspond to one bead in the
-        generated PDF. Works well with images created on{" "}
-        <a href="https://pixilart.com">pixilart.com</a>.
-      </p>
-      <FileImporter setImgH={setImgH} setImgW={setImgW}></FileImporter>
-      <div>
-        <div className="imgSize">
-          {"Image Size: "}
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={imgH ?? ""}
-            name="h"
-            onChange={(e) => {
-              setImgH(e.target.value);
-            }}
-            disabled={!imgDefined}
+      <header>
+        <h1>Perler Bead Template Generator</h1>
+        <p>
+          Upload an image and generate a PDF containing a perler bead template.
+          Each pixel of the image becomes one bead. Works well with images
+          created on <a href="https://pixilart.com">pixilart.com</a>.
+        </p>
+      </header>
+      <main>
+        <aside className="controls">
+          <section className="card">
+            <h2>Image</h2>
+            <FileImporter
+              loaded={imgDefined}
+              onLoad={(w, h) => {
+                setImgW(`${w}`);
+                setImgH(`${h}`);
+                setOrigSize({ w, h });
+                setImageVersion((v) => v + 1);
+              }}
+            />
+            {imgDefined && (
+              <div className="orig-size">
+                Original: {origSize.w} × {origSize.h} px
+              </div>
+            )}
+          </section>
+          <section className="card">
+            <h2>Template Output</h2>
+            <div className="field-row">
+              <NumberField
+                id="imgW"
+                label="Width"
+                unit="beads"
+                value={imgW}
+                step={1}
+                disabled={!imgDefined}
+                onChange={(v) => setDimension("w", v)}
+              />
+              <NumberField
+                id="imgH"
+                label="Height"
+                unit="beads"
+                value={imgH}
+                step={1}
+                disabled={!imgDefined}
+                onChange={(v) => setDimension("h", v)}
+              />
+            </div>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={keepRatio}
+                disabled={!imgDefined}
+                onChange={(e) => setKeepRatio(e.target.checked)}
+              />
+              Lock aspect ratio
+            </label>
+            <div className="field-row">
+              <NumberField
+                id="boardSize"
+                label="Board size"
+                unit="cells"
+                value={boardSize}
+                step={1}
+                onChange={setBoardSize}
+              />
+              <NumberField
+                id="cellSize"
+                label="Cell size"
+                unit="mm"
+                value={cellSize}
+                step={0.1}
+                onChange={setCellSize}
+              />
+            </div>
+            <PDFCreator
+              w={imgDefined ? imgWNum : null}
+              h={imgDefined ? imgHNum : null}
+              boardSize={parseInt(boardSize)}
+              cellSize={parseFloat(cellSize)}
+            />
+          </section>
+        </aside>
+        <section className="card preview">
+          <h2>Preview</h2>
+          <BeadPreview
+            w={imgWNum}
+            h={imgHNum}
+            boardSize={parseInt(boardSize)}
+            imageVersion={imageVersion}
           />
-          {" x "}
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={imgW ?? ""}
-            name="w"
-            onChange={(e) => {
-              setImgW(e.target.value);
-            }}
-            disabled={!imgDefined}
-          />
-          {" pixels / beads."}
-        </div>
-      </div>
-      <PDFCreator h={imgHNum} w={imgWNum}></PDFCreator>
+        </section>
+      </main>
     </div>
   );
 }

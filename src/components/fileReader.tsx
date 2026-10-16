@@ -1,7 +1,7 @@
 import { Marvin, MarvinImage } from "marvinj-ts";
 
 const canvasId = "canvas-img";
-const canvasH = 200;
+const canvasH = 240;
 
 export const marvinImage = new MarvinImage();
 
@@ -9,8 +9,8 @@ export const getCanvas = () =>
   document.getElementById(canvasId) as HTMLCanvasElement;
 
 export const FileImporter = (props: {
-  setImgW: (w: string) => void;
-  setImgH: (h: string) => void;
+  loaded: boolean;
+  onLoad: (w: number, h: number) => void;
 }) => {
   let fileReader: FileReader | null = null;
 
@@ -18,12 +18,11 @@ export const FileImporter = (props: {
     if (fileReader === null) {
       return;
     }
-    const previewCanvas = getCanvas();
     const dataURL = fileReader.result as string;
 
     const imageLoaded = () => {
-      props.setImgW(`${marvinImage.width}`);
-      props.setImgH(`${marvinImage.height}`);
+      props.onLoad(marvinImage.width, marvinImage.height);
+      const previewCanvas = getCanvas();
       const newWidth = Math.round(
         (marvinImage.width / marvinImage.height) * canvasH
       );
@@ -47,19 +46,23 @@ export const FileImporter = (props: {
   };
 
   return (
-    <>
-      <div className="upload-file">
-        <input
-          type="file"
-          id="file"
-          className="input-file"
-          accept=".jpg,.jpeg,.png"
-          onChange={(e) => handleChosenFile(e.target.files?.[0])}
-        ></input>
-      </div>
-      <div>
-        <canvas id={canvasId} width={canvasH} height={canvasH}></canvas>
-      </div>
-    </>
+    <div className="file-importer">
+      <label className="file-button" htmlFor="file">
+        Choose image
+      </label>
+      <input
+        type="file"
+        id="file"
+        className="file-input"
+        accept=".jpg,.jpeg,.png"
+        onChange={(e) => handleChosenFile(e.target.files?.[0])}
+      />
+      <canvas
+        id={canvasId}
+        width={canvasH}
+        height={canvasH}
+        hidden={!props.loaded}
+      ></canvas>
+    </div>
   );
 };

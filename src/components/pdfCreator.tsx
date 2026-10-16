@@ -1,6 +1,5 @@
 import jsPDF from "jspdf";
-import { useState } from "react";
-import { marvinImage } from "./fileReader";
+import { getBead } from "./beads";
 
 const a4SizeMM = [297, 210];
 const [, a4W] = a4SizeMM;
@@ -28,7 +27,7 @@ const getInfo = (
   const info: ImgInfo = { h, w, fullSize: 0, borderSpace: 0, totNPages: 0 };
   let warning: OptionalWarning = null;
   if (w === 0 || h === 0) {
-    warning = "Invalid image!";
+    warning = "Width and height must be positive!";
     return { warning, info };
   }
   if (!(boardSize >= 1) || !(selectedCellSizeMM > 0)) {
@@ -77,9 +76,6 @@ export const generatePdf = (
   const pagesNumberW = Math.ceil(w / boardSize);
   const pagesNumberH = Math.ceil(h / boardSize);
 
-  const resFacW = marvinImage.width / w;
-  const resFacH = marvinImage.height / h;
-
   const halfCellSize = selectedCellSizeMM / 2;
   for (let pageIdxH = 0; pageIdxH < pagesNumberH; ++pageIdxH) {
     const hIndexOffset = pageIdxH * boardSize;
@@ -98,20 +94,12 @@ export const generatePdf = (
 
       for (let i = 0; i < hMax; ++i) {
         const offsetH = topSpaceMM + i * selectedCellSizeMM;
-        const hResampled = i + hIndexOffset;
-        const hOrig = Math.round(resFacH * (hResampled + 0.5) - 0.5);
 
         for (let k = 0; k < wMax; ++k) {
           const offsetw = borderSpace + k * selectedCellSizeMM;
-          const wRes = k + wIndexOffset;
-          const wOrig = Math.round(resFacW * (wRes + 0.5) - 0.5);
-
-          const redChan = marvinImage.getIntComponent0(wOrig, hOrig);
-          const greenChan = marvinImage.getIntComponent1(wOrig, hOrig);
-          const blueChan = marvinImage.getIntComponent2(wOrig, hOrig);
-          const alpha = marvinImage.getAlphaComponent(wOrig, hOrig);
-          if (alpha > 0) {
-            doc.setFillColor(redChan, greenChan, blueChan);
+          const bead = getBead(w, h, k + wIndexOffset, i + hIndexOffset);
+          if (bead !== null) {
+            doc.setFillColor(bead.r, bead.g, bead.b);
             doc.circle(
               offsetw + halfCellSize,
               offsetH + halfCellSize,
@@ -136,55 +124,32 @@ export const generatePdf = (
   doc.save("perler-template-chba.pdf");
 };
 
-/** PDF file creator component. */
-export const PDFCreator = (props: ImgSize) => {
-  const [boardSize, setBoardSize] = useState(30);
-  const [cellSize, setCellSize] = useState(5);
-
-  const { warning, info } = getInfo(boardSize, cellSize, props);
-  const warnComp = warning && <div>WARNING: {warning}</div>;
-
-  let generateComp = null;
-  if (info !== null) {
-    generateComp = (
-      <>
-        {" "}
-        <div>Total: {info.totNPages} pages</div>
-        <button onClick={() => generatePdf(boardSize, cellSize, info, warning)}>
-          Create PDF
-        </button>
-      </>
-    );
-  }
+/** Summary and download button for the PDF. */
+export const PDFCreator = (props: {
+  /** Null if no image has been loaded yet. */
+  w: number | null;
+  h: number | null;
+  boardSize: number;
+  cellSize: number;
+}) => {
+  const { w, h, boardSize, cellSize } = props;
+  const { warning, info } = getInfo(boardSize, cellSize, { w, h });
 
   return (
-    <>
-      <div className="cellSize">
-        <label htmlFor="cellSize">Cell Size: </label>
-        <input
-          type="number"
-          min={0}
-          step={0.1}
-          value={cellSize}
-          name="cellSize"
-          onChange={(e) => setCellSize(parseFloat(e.target.value))}
-        />{" "}
-        mm.
-      </div>
-      <div className="boardSize">
-        <label htmlFor="boardSize">Board Size: </label>
-        <input
-          type="number"
-          min={0}
-          step={1}
-          value={boardSize}
-          name="boardSize"
-          onChange={(e) => setBoardSize(parseInt(e.target.value))}
-        />{" "}
-        cells (square).
-      </div>
-      {generateComp}
-      {warnComp}
-    </>
+    <div className="pdf-export">
+      {info !== null && (
+        <div className="pdf-summary">
+          {info.totNPages} {info.totNPages === 1 ? "page" : "pages"}
+        </div>
+      )}
+      {warning && <div className="warning">{warning}</div>}
+      <button
+        className="primary"
+        disabled={info === null || warning !== null}
+        onClick={() => info && generatePdf(boardSize, cellSize, info, warning)}
+      >
+        Create PDF
+      </button>
+    </div>
   );
 };
