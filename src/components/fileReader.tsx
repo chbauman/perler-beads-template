@@ -3,37 +3,40 @@ import { Marvin, MarvinImage } from "marvinj-ts";
 const canvasId = "canvas-img";
 const canvasH = 200;
 
-export const mavinImage = new MarvinImage();
+export const marvinImage = new MarvinImage();
 
 export const getCanvas = () =>
   document.getElementById(canvasId) as HTMLCanvasElement;
 
-export const FileImporter = (props: { setImgW: any; setImgH: any }) => {
+export const FileImporter = (props: {
+  setImgW: (w: string) => void;
+  setImgH: (h: string) => void;
+}) => {
   let fileReader: FileReader | null = null;
 
-  const handleRead = (e: any) => {
+  const handleRead = () => {
     if (fileReader === null) {
       return;
     }
     const previewCanvas = getCanvas();
-    const dataURL = fileReader!.result as string;
+    const dataURL = fileReader.result as string;
 
     const imageLoaded = () => {
-      props.setImgW(mavinImage.width);
-      props.setImgH(mavinImage.height);
+      props.setImgW(`${marvinImage.width}`);
+      props.setImgH(`${marvinImage.height}`);
       const newWidth = Math.round(
-        (mavinImage.width / mavinImage.height) * canvasH
+        (marvinImage.width / marvinImage.height) * canvasH
       );
       const rescaledImage = new MarvinImage();
-      Marvin.scale(mavinImage, rescaledImage, newWidth, canvasH);
+      Marvin.scale(marvinImage, rescaledImage, newWidth, canvasH);
       previewCanvas.setAttribute("width", `${newWidth}`);
       rescaledImage.draw(previewCanvas, 0, 0, 0);
     };
 
-    mavinImage.load(dataURL, imageLoaded);
+    marvinImage.load(dataURL, imageLoaded);
   };
 
-  const handleChosenFile = (file: any) => {
+  const handleChosenFile = (file: File | undefined) => {
     if (file) {
       fileReader = new FileReader();
       fileReader.onloadend = handleRead;
@@ -45,13 +48,13 @@ export const FileImporter = (props: { setImgW: any; setImgH: any }) => {
 
   return (
     <>
-      <div className="upload-expense">
+      <div className="upload-file">
         <input
           type="file"
           id="file"
           className="input-file"
           accept=".jpg,.jpeg,.png"
-          onChange={(e: any) => handleChosenFile(e.target.files[0])}
+          onChange={(e) => handleChosenFile(e.target.files?.[0])}
         ></input>
       </div>
       <div>

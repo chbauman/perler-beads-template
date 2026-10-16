@@ -1,9 +1,9 @@
 import jsPDF from "jspdf";
 import { useState } from "react";
-import { mavinImage } from "./fileReader";
+import { marvinImage } from "./fileReader";
 
 const a4SizeMM = [297, 210];
-const [a4H, a4W] = a4SizeMM;
+const [, a4W] = a4SizeMM;
 const topSpaceMM = 20;
 
 type OptionalWarning = null | string;
@@ -31,8 +31,11 @@ const getInfo = (
     warning = "Invalid image!";
     return { warning, info };
   }
+  if (!(boardSize >= 1) || !(selectedCellSizeMM > 0)) {
+    warning = "Board size and cell size must be positive!";
+    return { warning, info };
+  }
 
-  console.assert(a4H > 0);
   const fullSize = boardSize * selectedCellSizeMM;
   const borderSpace = (a4W - fullSize) / 2;
   if (borderSpace < 0) {
@@ -49,7 +52,7 @@ const getInfo = (
   return { warning, info };
 };
 
-/** Generate Pdf from mavinImage. */
+/** Generate Pdf from marvinImage. */
 export const generatePdf = (
   boardSize: number,
   selectedCellSizeMM: number,
@@ -74,8 +77,8 @@ export const generatePdf = (
   const pagesNumberW = Math.ceil(w / boardSize);
   const pagesNumberH = Math.ceil(h / boardSize);
 
-  const resFacW = mavinImage.width / w;
-  const resFacH = mavinImage.height / h;
+  const resFacW = marvinImage.width / w;
+  const resFacH = marvinImage.height / h;
 
   const halfCellSize = selectedCellSizeMM / 2;
   for (let pageIdxH = 0; pageIdxH < pagesNumberH; ++pageIdxH) {
@@ -103,10 +106,10 @@ export const generatePdf = (
           const wRes = k + wIndexOffset;
           const wOrig = Math.round(resFacW * (wRes + 0.5) - 0.5);
 
-          const redChan = mavinImage.getIntComponent0(wOrig, hOrig);
-          const greenChan = mavinImage.getIntComponent1(wOrig, hOrig);
-          const blueChan = mavinImage.getIntComponent2(wOrig, hOrig);
-          const alpha = mavinImage.getAlphaComponent(wOrig, hOrig);
+          const redChan = marvinImage.getIntComponent0(wOrig, hOrig);
+          const greenChan = marvinImage.getIntComponent1(wOrig, hOrig);
+          const blueChan = marvinImage.getIntComponent2(wOrig, hOrig);
+          const alpha = marvinImage.getAlphaComponent(wOrig, hOrig);
           if (alpha > 0) {
             doc.setFillColor(redChan, greenChan, blueChan);
             doc.circle(

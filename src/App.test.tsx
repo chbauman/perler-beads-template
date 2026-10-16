@@ -1,8 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import App from "./App";
 
-test("renders learn react link", () => {
+jest.mock("marvinj-ts", () => ({
+  Marvin: { scale: jest.fn() },
+  MarvinImage: jest.fn(),
+}));
+
+test("renders the app title", () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(
+    screen.getByText(/perler bead template generator/i)
+  ).toBeInTheDocument();
 });
