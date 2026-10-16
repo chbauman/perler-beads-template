@@ -84,6 +84,9 @@ function App() {
                 Original: {origSize.w} × {origSize.h} px
               </div>
             )}
+          </section>
+          <section className="card">
+            <h2>Template Output</h2>
             <div className="field-row">
               <NumberField
                 id="imgW"
@@ -113,9 +116,6 @@ function App() {
               />
               Lock aspect ratio
             </label>
-          </section>
-          <section className="card">
-            <h2>Board</h2>
             <div className="field-row">
               <NumberField
                 id="boardSize"
@@ -135,8 +135,8 @@ function App() {
               />
             </div>
             <PDFCreator
-              w={imgDefined ? imgWNum : 0}
-              h={imgDefined ? imgHNum : 0}
+              w={imgDefined ? imgWNum : null}
+              h={imgDefined ? imgHNum : null}
               boardSize={parseInt(boardSize)}
               cellSize={parseFloat(cellSize)}
             />

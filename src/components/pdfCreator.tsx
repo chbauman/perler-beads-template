@@ -27,7 +27,7 @@ const getInfo = (
   const info: ImgInfo = { h, w, fullSize: 0, borderSpace: 0, totNPages: 0 };
   let warning: OptionalWarning = null;
   if (w === 0 || h === 0) {
-    warning = "Invalid image!";
+    warning = "Width and height must be positive!";
     return { warning, info };
   }
   if (!(boardSize >= 1) || !(selectedCellSizeMM > 0)) {
@@ -126,8 +126,9 @@ export const generatePdf = (
 
 /** Summary and download button for the PDF. */
 export const PDFCreator = (props: {
-  w: number;
-  h: number;
+  /** Null if no image has been loaded yet. */
+  w: number | null;
+  h: number | null;
   boardSize: number;
   cellSize: number;
 }) => {
