@@ -1,6 +1,6 @@
 # Perler Bead Template Creator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Upload an image and get a printable PDF template with one bead per pixel.
 It can be viewed at [https://perler.chrisbaumann.ch/](https://perler.chrisbaumann.ch/).
 
 ## Development
