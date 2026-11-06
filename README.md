@@ -29,3 +29,10 @@ Type-checks and builds the app for production to the `dist` folder.
 
 Publishes the app manually to the `gh-pages` branch.
 Pushes to `main` are deployed automatically by `.github/workflows/deploy.yml`.
+
+## Search engines
+
+`index.html` has title and description, canonical address, Open Graph / Twitter card
+(`public/social-card.png`) and structured data (`WebApplication`). `public/sitemap.xml` and
+`public/robots.txt` end up in the root of the site, which is also the root of the domain
+`perler.chrisbaumann.ch`. The site can also be added in the Google Search Console.
